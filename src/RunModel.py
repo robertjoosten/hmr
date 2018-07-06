@@ -86,6 +86,7 @@ class RunModel(object):
         self.all_kps = []
         self.all_cams = []
         self.all_Js = []
+        self.all_Rs = []
         self.final_thetas = []
         theta_prev = tf.tile(self.mean_var, [self.batch_size, 1])
         for i in np.arange(self.num_stage):
@@ -113,7 +114,7 @@ class RunModel(object):
             poses = theta_here[:, self.num_cam:(self.num_cam + self.num_theta)]
             shapes = theta_here[:, (self.num_cam + self.num_theta):]
 
-            verts, Js, _ = self.smpl(shapes, poses, get_skin=True)
+            verts, Js, Rs = self.smpl(shapes, poses, get_skin=True)
 
             # Project to 2D!
             pred_kp = self.proj_fn(Js, cams, name='proj_2d_stage%d' % i)
@@ -121,6 +122,7 @@ class RunModel(object):
             self.all_kps.append(pred_kp)
             self.all_cams.append(cams)
             self.all_Js.append(Js)
+            self.all_Rs.append(Rs)
             # save each theta.
             self.final_thetas.append(theta_here)
             # Finally)update to end iteration.
@@ -139,11 +141,24 @@ class RunModel(object):
         """
         results = self.predict_dict(images)
         if get_theta:
-            return results['joints'], results['verts'], results['cams'], results[
-                'joints3d'], results['theta']
+            return [
+                results['joints'],
+                results['verts'],
+                results['cams'],
+                results['joints3d'],
+                results['jointsRot3d'],
+                results['matrices3d'],
+                results['theta']
+            ]
         else:
-            return results['joints'], results['verts'], results['cams'], results[
-                'joints3d']
+            return [
+                results['joints'],
+                results['verts'],
+                results['cams'],
+                results['joints3d'],
+                results['jointsRot3d'],
+                results['matrices3d']
+            ]
 
     def predict_dict(self, images):
         """
@@ -160,6 +175,7 @@ class RunModel(object):
             'verts': self.all_verts[-1],
             'cams': self.all_cams[-1],
             'joints3d': self.all_Js[-1],
+            'jointsRot3d': self.all_Rs[-1],
             'theta': self.final_thetas[-1],
         }
 
@@ -168,5 +184,18 @@ class RunModel(object):
         # Return joints in original image space.
         joints = results['joints']
         results['joints'] = ((joints + 1) * 0.5) * self.img_size
+
+        # Return transformation matrices
+        results['matrices3d'] = [
+            rot[0].tolist() + [0] +
+            rot[1].tolist() + [0] +
+            rot[2].tolist() + [0] +
+            pos.tolist() + [1]
+
+            for pos, rot in zip(
+                results['joints3d'][0],
+                results['jointsRot3d'][0]
+            )
+        ]
 
         return results

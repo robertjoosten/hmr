@@ -9,11 +9,11 @@ Alternatively, you can supply output of the openpose to figure out the bbox and 
 Sample usage:
 
 # On images on a tightly cropped image around the person
-python -m demo --img_path data/im1963.jpg
-python -m demo --img_path data/coco1.png
+python3 -m demo --img_path data/im1963.jpg
+python3 -m demo --img_path data/coco1.png
 
 # On images, with openpose output
-python -m demo --img_path data/random.jpg --json_path data/random_keypoints.json
+python3 -m demo --img_path data/random.jpg --json_path data/random_keypoints.json
 """
 from __future__ import absolute_import
 from __future__ import division

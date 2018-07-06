@@ -2,7 +2,7 @@
 pip>=9.0
 scipy
 numpy
-opendr
+#opendr ( CAUSES ISSUES WITH PYTHON3 also not needed for conversion only )
 matplotlib
 scikit-image
 deepdish>=0.3

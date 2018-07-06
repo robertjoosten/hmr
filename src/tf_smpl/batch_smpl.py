@@ -11,69 +11,63 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-import cPickle as pickle
 
 import tensorflow as tf
 from .batch_lbs import batch_rodrigues, batch_global_rigid_transformation
 
 
-# There are chumpy variables so convert them to numpy.
-def undo_chumpy(x):
-    return x if isinstance(x, np.ndarray) else x.r
-
-
 class SMPL(object):
-    def __init__(self, pkl_path, joint_type='cocoplus', dtype=tf.float32):
+    def __init__(self, npy_path, joint_type='cocoplus', dtype=tf.float32):
         """
         pkl_path is the path to a SMPL model
         """
         # -- Load SMPL params --
-        with open(pkl_path, 'r') as f:
-            dd = pickle.load(f)    
+        dd = np.load(npy_path, encoding="latin1")
+
         # Mean template vertices
         self.v_template = tf.Variable(
-            undo_chumpy(dd['v_template']),
+            dd.item()['v_template'],
             name='v_template',
             dtype=dtype,
             trainable=False)
         # Size of mesh [Number of vertices, 3]
         self.size = [self.v_template.shape[0].value, 3]
-        self.num_betas = dd['shapedirs'].shape[-1]
+        self.num_betas = dd.item()['shapedirs'].shape[-1]
         # Shape blend shape basis: 6980 x 3 x 10
         # reshaped to 6980*30 x 10, transposed to 10x6980*3
         shapedir = np.reshape(
-            undo_chumpy(dd['shapedirs']), [-1, self.num_betas]).T
+            dd.item()['shapedirs'], [-1, self.num_betas]).T
         self.shapedirs = tf.Variable(
             shapedir, name='shapedirs', dtype=dtype, trainable=False)
 
         # Regressor for joint locations given shape - 6890 x 24
         self.J_regressor = tf.Variable(
-            dd['J_regressor'].T.todense(),
+            dd.item()['J_regressor'].T.todense(),
             name="J_regressor",
             dtype=dtype,
             trainable=False)
 
         # Pose blend shape basis: 6890 x 3 x 207, reshaped to 6890*30 x 207
-        num_pose_basis = dd['posedirs'].shape[-1]
+        num_pose_basis = dd.item()['posedirs'].shape[-1]
         # 207 x 20670
         posedirs = np.reshape(
-            undo_chumpy(dd['posedirs']), [-1, num_pose_basis]).T
+            dd.item()['posedirs'], [-1, num_pose_basis]).T
         self.posedirs = tf.Variable(
             posedirs, name='posedirs', dtype=dtype, trainable=False)
 
         # indices of parents for each joints
-        self.parents = dd['kintree_table'][0].astype(np.int32)
+        self.parents = dd.item()['kintree_table'][0].astype(np.int32)
 
         # LBS weights
         self.weights = tf.Variable(
-            undo_chumpy(dd['weights']),
+            dd.item()['weights'],
             name='lbs_weights',
             dtype=dtype,
             trainable=False)
 
         # This returns 19 keypoints: 6890 x 19
         self.joint_regressor = tf.Variable(
-            dd['cocoplus_regressor'].T.todense(),
+            dd.item()['cocoplus_regressor'].T.todense(),
             name="cocoplus_regressor",
             dtype=dtype,
             trainable=False)

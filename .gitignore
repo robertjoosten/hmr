@@ -1,4 +1,6 @@
-models/
+models/model*
+models/*.pkl
+models/*.npy
 logs*/
 *.json
 *.DS_Store

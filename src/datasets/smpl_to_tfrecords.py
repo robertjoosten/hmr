@@ -9,7 +9,7 @@ from os import makedirs
 from os.path import join, exists
 import numpy as np
 from glob import glob
-import cPickle as pickle
+import _pickle as pickle
 
 import tensorflow as tf
 
