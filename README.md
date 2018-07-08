@@ -7,6 +7,8 @@ CVPR 2018
 
 [Project Page](https://akanazawa.github.io/hmr/)
 
+## Export
+
 The export module will allow for the exporting of the skeleton animated over time ( multiple images ). 3D matrices and 3D camera points are exported. These can be used to rebuild the skeleton in a seperate application. If a json_dir is provided keypoints will be extracted and matched depending on distance from each other and a distance threshold. This way the number of people and people over different frames are nicely matched. There is also a possibility to exclude people if they are only present in the animation under the presence_threshold. These values can be adjusted in the openpose util.
 
 Sample usage:
